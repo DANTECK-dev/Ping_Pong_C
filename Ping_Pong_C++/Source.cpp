@@ -4,6 +4,8 @@
 #include <random>
 #include <conio.h>
 #include <iostream>
+#include <string>
+#include <fstream>
 #include <Windows.h>
 
 using namespace std;
@@ -21,7 +23,7 @@ void cls()
 	// We need to flush that to the console because we're circumventing
 	// std::cout entirely; after we clear the console, we don't want
 	// stale buffered text to randomly be written out.
-	std::cout.flush();
+	cout.flush();
 
 	// Figure out the current width and height of the console window
 	if (!GetConsoleScreenBufferInfo(hOut, &csbi)) {
@@ -45,7 +47,7 @@ void cls()
 void setCursorPosition(int x, int y)
 {
 	static const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	std::cout.flush();
+	cout.flush();
 	COORD coord = { (SHORT)x, (SHORT)y };
 	SetConsoleCursorPosition(hOut, coord);
 }
@@ -59,12 +61,6 @@ enum eDir
 	RIGHT,
 	UPRIGHT,
 	DOWNRIGHT
-};
-
-enum BonusType
-{
-	AddBall,
-
 };
 
 class Ball
@@ -85,14 +81,32 @@ public:
 		oldY = posY;
 		directional = STOP;
 	}
-	void Reset()
+	void Reset(bool first)
 	{
-		setCursorPosition(x, y);
-		cout << " ";
-		x = origX;
-		y = origY;
-		oldX = origX;
-		oldY = origY;
+		/*for (int i = -1; i <= 1; i++)
+		{
+			for (int j = -1; j <= 1; i++)
+			{
+				setCursorPosition(x + i, y + j);
+				cout << " ";
+			}
+		}*/
+		if (first == true)
+		{
+			setCursorPosition(x, y);
+			cout << " ";
+			x = origX;
+			y = origY;
+			oldX = origX;
+			oldY = origY;
+		}
+		else
+		{
+			setCursorPosition(x, y);
+			cout << " ";
+			//oldX = origX;
+			//oldY = origY;
+		}
 	}
 	void changeDirectional(eDir d)
 	{
@@ -129,11 +143,7 @@ public:
 	inline int getOldY() { return oldY; }
 	inline eDir getDirectional() { return directional; }
 	void Move()
-	{/*
-		setCursorPosition(x, y);
-		cout << " ";
-		*/
-
+	{
 		oldX = x;
 		oldY = y;
 
@@ -241,15 +251,25 @@ class GameManager
 private:
 	int width, height;
 	int score1, score2;
+	int speedAI, currentSpeedAI;
+	int PlayTime;
+	int ball2Timer;
 	char up1, up2, down1, down2;
+	char OnAI, OffAI;
 	bool quit;
 	bool boolObs;
 	bool addBall;
+	bool PaddleAI;
+	bool colize;
+	string username;
 	Ball* ball1;
 	Ball* ball2;
 	Paddle* player1;
 	Paddle* player2;
 	Obstacles* Obstacle;
+
+	ofstream fileOutput;
+	ifstream fileInput;
 
 	int ObstacleTimer = 0;
 	int ObstacleX;
@@ -264,6 +284,7 @@ public:
 		quit = false;
 		up1 = 'w'; down1 = 's';
 		up2 = 'i'; down2 = 'k';
+		OnAI = 'v'; OffAI = 'b';
 		score1 = score2 = 0;
 		this->width = width;
 		this->height = height;
@@ -272,7 +293,13 @@ public:
 		player1 = new Paddle(1, height / 2 - 3);
 		player2 = new Paddle(width - 2, height / 2 - 3);
 		boolObs = false;
-		addBall = false;
+		addBall = true;
+		PaddleAI = false;
+		colize = true;
+		speedAI = 7;
+		PlayTime = 0;
+		currentSpeedAI = 0;
+		ball2Timer = 150;
 	}
 	~GameManager()
 	{
@@ -307,16 +334,81 @@ public:
 			score2++;
 
 		this->Reset();
-		ball1->Reset();
-		ball2->Reset();
-		player1->Reset();
-		player2->Reset();
+		ball1->Reset(true);
+		if (ball2->getX() >= width || ball2->getY() >= height)
+			ball2->Reset(true);
+		else
+			ball2->Reset(false);
+		//player1->Reset();
+		//player2->Reset();
+	}
+	void AI()
+	{
+		if (PaddleAI == false) return;
+
+		int ball1X = ball1->getX();
+		int ball1Y = ball1->getY();
+		
+		int ball2X = ball2->getX();
+		int ball2Y = ball2->getY();
+		
+		int player2Y = player2->getY();
+		
+		if (PlayTime % 500 == 0 && speedAI>2)
+			speedAI--;
+		if (ball1X > ball2X)
+		{
+			if (currentSpeedAI <= 0 && speedAI > 0) currentSpeedAI = speedAI;
+			else if (currentSpeedAI > 0)
+			{
+				currentSpeedAI--;
+				if (currentSpeedAI == 0)
+				{
+					if (ball1Y == player2Y + 1 || ball1Y == player2Y + 2 || ball1Y == player2Y + 3)
+						return;
+					else if (ball1Y < player2Y + 2)
+						player2->moveUP();
+					else if (ball1Y > player2Y + 2)
+						player2->moveDOWN();
+				}
+			}
+			else
+				if (ball1Y == player2Y + 1 || ball1Y == player2Y + 2 || ball1Y == player2Y + 3)
+					return;
+				else if (ball1Y < player2Y + 2)
+					player2->moveUP();
+				else if (ball1Y > player2Y + 2)
+					player2->moveDOWN();
+		}
+		else
+		{
+			if (currentSpeedAI <= 0 && speedAI > 0) currentSpeedAI = speedAI;
+			else if (currentSpeedAI > 0)
+			{
+				currentSpeedAI--;
+				if (currentSpeedAI == 0)
+				{
+					if (ball2Y == player2Y + 1 || ball2Y == player2Y + 2 || ball2Y == player2Y + 3)
+						return;
+					else if (ball2Y < player2Y + 2)
+						player2->moveUP();
+					else if (ball2Y > player2Y + 2)
+						player2->moveDOWN();
+				}
+			}
+			else
+				if (ball2Y == player2Y + 1 || ball2Y == player2Y + 2 || ball2Y == player2Y + 3)
+					return;
+				else if (ball2Y < player2Y + 2)
+					player2->moveUP();
+				else if (ball2Y > player2Y + 2)
+					player2->moveDOWN();
+		}
 	}
 	void Draw()
 	{
 		int ballX = ball1->getX();
 		int ballY = ball1->getY();
-
 
 		int player1X = player1->getX();
 		int player1Y = player1->getY();
@@ -324,6 +416,13 @@ public:
 		int player2X = player2->getX();
 		int player2Y = player2->getY();
 
+		if (addBall == true && colize == true && PlayTime % 2 == 0)
+		{
+			int ball2X = ball2->getX();
+			int ball2Y = ball2->getY();
+			setCursorPosition(ball2X, ball2Y);
+			cout << "O";
+		}
 
 		if (boolObs == true)
 		{
@@ -350,7 +449,12 @@ public:
 		cout << "\xDB";
 
 		setCursorPosition(0, height + 1);
-		cout << "Score 1:" << score1 << "\t\t\tScore 2:" << score2 << endl;
+		cout << "\nScore 1:" << score1 << "\t\t\tScore 2:" << score2
+			<< "\n\ncurrentSpeedAI " << currentSpeedAI << "\tspeedAI " << speedAI << "\tPlayTime " << PlayTime
+			<< "\nAddBall " << addBall << "\t\tBallColize " << colize << "\tObstacle " << boolObs
+			<< "\n\nw / s - to control the left platform"
+			<< "\ni / k - to control the right platform"
+			<< "\nv / b - on/off to control the right platform using AI";
 
 		Sleep(1);
 	}
@@ -359,8 +463,10 @@ public:
 		ball1->Move();
 		int ballX = ball1->getX();
 		int ballY = ball1->getY();
+
 		int player1X = player1->getX();
 		int player1Y = player1->getY();
+
 		int player2X = player2->getX();
 		int player2Y = player2->getY();
 
@@ -381,12 +487,35 @@ public:
 			if (current == down2)
 				if (player2Y + 4 < height)
 					player2->moveDOWN();
+
+			if (current == OnAI)
+				if (player2Y > 0)
+					PaddleAI = true;
+			if (current == OffAI)
+				if (player2Y + 4 < height)
+					PaddleAI = false;
+
 			if (ball1->getDirectional() == STOP)
 				ball1->randomDirectional(false);
+
+			if (ball2->getDirectional() == STOP)
+				ball2->randomDirectional(false);
 
 			if (current == 'q')
 				quit = true;
 		}
+	}
+	void clenOldBall()
+	{
+		int ball2X = ball2->getX();
+		int ball2Y = ball2->getY();
+
+		for(int i=-1;i<2;i++)
+			for (int j = -1; j < 2; j++)
+			{
+				setCursorPosition(ball2X + i, ball2Y + j);
+				cout << " ";
+			}
 	}
 	void Logic()
 	{
@@ -394,11 +523,19 @@ public:
 		int ballY = ball1->getY();
 		int ballOldX = ball1->getOldX();
 		int ballOldY = ball1->getOldY();
+
 		int player1X = player1->getX();
 		int player1Y = player1->getY();
+
 		int player2X = player2->getX();
 		int player2Y = player2->getY();
 
+		int ball2X = ball2->getX();
+		int ball2Y = ball2->getY();
+
+		if (PaddleAI == true) AI();
+
+		#pragma region Obstacle
 		if (boolObs == false)
 		{
 			int randomaz = rand() % 40;
@@ -407,14 +544,15 @@ public:
 				boolObs = true;
 				ObstacleTimer = rand() % 1000;
 				Obstacle = new Obstacles();
-				ObstacleX = Obstacle->getX() % width - 7;
-				ObstacleY = Obstacle->getY() % height - 5;
+				ObstacleX = Obstacle->getX() % (width - 7)+3;
+				ObstacleY = Obstacle->getY() % (height - 5)+2;
 				width > height ? ObstacleLen = Obstacle->getLength() % height : ObstacleLen = Obstacle->getLength() % width;
 				ObsVertical = Obstacle->getVertical();
 				if (ObstacleX <= 0) ObstacleX = height / 2;
 				if (ObstacleY <= 0) ObstacleY = height / 2;
 			}
 		}
+
 		if (ObstacleTimer != 0)
 		{
 			ObstacleTimer--;
@@ -422,7 +560,7 @@ public:
 			{
 				for (int i = 0; i < ObstacleLen; i++)
 				{
-					if (ObstacleY + i == height)break;
+					if (ObstacleY + i >= height - 2 || ObstacleY <= 2)break;
 					setCursorPosition(ObstacleX, ObstacleY + i);
 					cout << "\xB2";
 
@@ -430,6 +568,12 @@ public:
 						if (ballY == ObstacleY + i)
 							if (ball1->getDirectional() == LEFT) ball1->changeDirectional(RIGHT);
 							else ball1->randomDirectional(true);
+
+					if (addBall == true && colize == true && PlayTime % 2 == 0)
+						if (ball2X == ObstacleX)
+							if (ball2Y == ObstacleY + i)
+								if (ball1->getDirectional() == LEFT) ball1->changeDirectional(RIGHT);
+								else ball1->randomDirectional(true);
 				}
 
 				if (ObstacleTimer == 0)
@@ -447,7 +591,7 @@ public:
 			{
 				for (int i = 0; i < ObstacleLen; i++)
 				{
-					if (ObstacleX + i == width)break;
+					if (ObstacleX + i >= width - 3 || ObstacleX <= 3)break;
 					setCursorPosition(ObstacleX + i, ObstacleY);
 					cout << "\xB2";
 
@@ -455,6 +599,12 @@ public:
 						if (ballY == ObstacleY)
 							if (ball1->getDirectional() == LEFT) ball1->changeDirectional(RIGHT);
 							else ball1->randomDirectional(true);
+
+					if (addBall == true && colize == true && PlayTime % 2 == 0)
+						if (ball2X == ObstacleX)
+							if (ball2Y == ObstacleY + i)
+								if (ball1->getDirectional() == LEFT) ball1->changeDirectional(RIGHT);
+								else ball1->randomDirectional(true);
 				}
 
 				if (ObstacleTimer == 0)
@@ -472,12 +622,106 @@ public:
 		}
 		else boolObs = false;
 
+		#pragma endregion
+
+
+
+		#pragma region AddBall
+
+		if (addBall == false && PlayTime%150 == rand()%150)
+		{
+			addBall = true;
+			ball2Timer = rand() % 1000 + 100;
+			colize = false;
+		}
+		
+		if (addBall == true && colize == false)
+		{
+			if (PlayTime % 20 >= 10)
+			{
+				setCursorPosition(ball2X, ball2Y);
+				cout << " ";
+			}
+			else
+			{
+				setCursorPosition(ball2X, ball2Y);
+				cout << "0";
+			}
+			if (ballX == ball2X - 1 || ballX == ball2X || ballX == ball2X + 1)
+			{
+				if (ballY == ball2Y - 1 || ballY == ball2Y || ballY == ball2Y + 1)
+				{
+					setCursorPosition(ball2X, ball2Y);
+					cout << " ";
+					colize = true;
+				}
+			}
+		}
+
+		if (ball2Timer <= 0) addBall = false;
+
+		if (addBall == true && colize == true && PlayTime % 2 == 0)
+		{
+			ball2Timer--;
+			
+
+			//if (PlayTime % 2 == 0)
+			//ball2->Move();
+
+			//left
+			for (int i = 0; i < 4; i++)
+				if (ball2X == player1X + 1)
+					if (ball2Y == player1Y + i)
+					{
+						ball2->changeDirectional(ball2->getDirectional() == UPLEFT ? UPRIGHT : DOWNRIGHT);
+						bool leftRand = rand() % 15;
+						if (leftRand == false) ball2->changeDirectional(RIGHT);
+					}
+
+			//right
+			for (int i = 0; i < 4; i++)
+				if (ball2X == player2X)
+					if (ball2Y == player2Y + i)
+					{
+						ball2->changeDirectional(ball2->getDirectional() == UPRIGHT ? UPLEFT : DOWNLEFT);
+						bool leftRand = rand() % 15;
+						if (leftRand == false) ball2->changeDirectional(LEFT);
+					}
+			//bott
+			if (ball2Y >= height - 1)
+				ball2->randomDirectional(false);
+
+			//top
+			if (ball2Y <= 1)
+				ball2->randomDirectional(false);
+
+			//right
+			if (ball2X >= width)
+			{
+				//clenOldBall();
+				ball2->Reset(true);
+				ScoreUP(player1);
+			}
+
+			//left
+			if (ball2X <= 1)
+			{
+				//clenOldBall();
+				ball2->Reset(true);
+				ScoreUP(player2);
+			}
+
+			ball2->Move();
+		}
+		
+		if (ball2Timer <= 0) { addBall == false; colize = false; }
+		#pragma endregion
+
 		//left
 		for (int i = 0; i < 4; i++)
 			if (ballX == player1X + 1)
 				if (ballY == player1Y + i)
 				{
-					//if (ball->getDirectional() == LEFT) ball->changeDirectional(RIGHT);
 					ball1->changeDirectional(ball1->getDirectional() == UPLEFT ? UPRIGHT : DOWNRIGHT);
 					bool leftRand = rand() % 15;
 					if (leftRand == false) ball1->changeDirectional(RIGHT);
@@ -488,7 +732,6 @@ public:
 			if (ballX == player2X)
 				if (ballY == player2Y + i)
 				{
-					//if (ball->getDirectional() == RIGHT) ball1->changeDirectional(LEFT);
 					ball1->changeDirectional(ball1->getDirectional() == UPRIGHT ? UPLEFT : DOWNLEFT);
 					bool leftRand = rand() % 15;
 					if (leftRand == false) ball1->changeDirectional(LEFT);
@@ -510,15 +753,27 @@ public:
 		if (ballX == 1)
 			ScoreUP(player2);
 
+		if (addBall == true && PlayTime % 2 == 0)
+		{
+			int ballOld2X = ball2->getOldX();
+			int ballOld2Y = ball2->getOldY();
+			setCursorPosition(ballOld2X, ballOld2Y);
+			cout << " ";
+		}
 		setCursorPosition(ballOldX, ballOldY);
 		cout << " ";
 	}
 	void Run()
 	{
+		cout << "\n\tInput username: ";
+		getline(cin, username);
+
+		//ofstream fileOutput("Saves.txt");
+		//fileOutput.open("Saves.txt");
 		try
 		{
-			if (this->width < 6) throw exception("Error the field length is too small");
-			if (this->height < 7) throw exception("Error The field height is too small");
+			if (this->width < 12) throw exception("Error the field length is too small");
+			if (this->height < 14) throw exception("Error The field height is too small");
 
 			if (this->width > 190) throw exception("Error the field length is too big");
 			if (this->height > 40) throw exception("Error The field height is too big");
@@ -547,6 +802,7 @@ public:
 
 		while (!quit)
 		{
+			PlayTime++;
 			int speed;
 			score1 <= 30 ? speed = 33 - score1 + score2 : speed = 0;
 			score2 <= 50 ? speed += score2 : speed = speed;
