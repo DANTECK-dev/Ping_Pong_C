@@ -354,7 +354,7 @@ public:
 		
 		int player2Y = player2->getY();
 		
-		if (PlayTime % 500 == 0 && speedAI>2)
+		if (PlayTime % 1500 == 0 && speedAI>2)
 			speedAI--;
 
 		if (colize == false)
