@@ -356,6 +356,33 @@ public:
 		
 		if (PlayTime % 500 == 0 && speedAI>2)
 			speedAI--;
+
+		if (colize == false)
+		{
+			if (currentSpeedAI <= 0 && speedAI > 0) currentSpeedAI = speedAI;
+			else if (currentSpeedAI > 0)
+			{
+				currentSpeedAI--;
+				if (currentSpeedAI == 0)
+				{
+					if (ball1Y == player2Y + 1 || ball1Y == player2Y + 2 || ball1Y == player2Y + 3)
+						return;
+					else if (ball1Y < player2Y + 2)
+						player2->moveUP();
+					else if (ball1Y > player2Y + 2)
+						player2->moveDOWN();
+				}
+			}
+			else
+				if (ball1Y == player2Y + 1 || ball1Y == player2Y + 2 || ball1Y == player2Y + 3)
+					return;
+				else if (ball1Y < player2Y + 2)
+					player2->moveUP();
+				else if (ball1Y > player2Y + 2)
+					player2->moveDOWN();
+			return;
+		}
+
 		if (ball1X > ball2X)
 		{
 			if (currentSpeedAI <= 0 && speedAI > 0) currentSpeedAI = speedAI;
@@ -379,6 +406,7 @@ public:
 					player2->moveUP();
 				else if (ball1Y > player2Y + 2)
 					player2->moveDOWN();
+			return;
 		}
 		else
 		{
@@ -403,6 +431,7 @@ public:
 					player2->moveUP();
 				else if (ball2Y > player2Y + 2)
 					player2->moveDOWN();
+			return;
 		}
 	}
 	void Draw()
