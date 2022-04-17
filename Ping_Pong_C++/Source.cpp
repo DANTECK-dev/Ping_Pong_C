@@ -505,18 +505,6 @@ public:
 				quit = true;
 		}
 	}
-	void clenOldBall()
-	{
-		int ball2X = ball2->getX();
-		int ball2Y = ball2->getY();
-
-		for(int i=-1;i<2;i++)
-			for (int j = -1; j < 2; j++)
-			{
-				setCursorPosition(ball2X + i, ball2Y + j);
-				cout << " ";
-			}
-	}
 	void Logic()
 	{
 		int ballX = ball1->getX();
@@ -765,11 +753,6 @@ public:
 	}
 	void Run()
 	{
-		cout << "\n\tInput username: ";
-		getline(cin, username);
-
-		//ofstream fileOutput("Saves.txt");
-		//fileOutput.open("Saves.txt");
 		try
 		{
 			if (this->width < 12) throw exception("Error the field length is too small");
@@ -784,6 +767,43 @@ public:
 			return;
 		}
 
+		cout << "\n\tInput username: ";
+		cin >> username;
+
+		system("cls");
+		
+		const int cou = 10;
+		int Icou = 1;
+
+		fileInput.open("Rates.txt");
+		string topUsernames[cou];
+		int topScore[cou]{0};
+		
+		setCursorPosition(0, height + 11);
+		cout << "Top Usernames";
+		setCursorPosition(32, height + 11); 
+		cout << "Top Score";
+
+		for (int i = 0; i < cou; i++)
+			if (fileInput.eof() || fileInput.fail() || fileInput.bad()) break;
+			else
+			{
+				fileInput >> topUsernames[i];
+				fileInput >> topScore[i];
+				if (topUsernames[i] != "" && topScore[i] != 0)
+				{
+					setCursorPosition(0, height + 12 + i);
+					cout << topUsernames[i];
+					setCursorPosition(32, height + 12 + i);
+					cout << topScore[i];
+					Icou = i + 1;
+				}
+			}
+
+		fileInput.close();
+
+		
+		setCursorPosition(0, 0);
 		for (int i = 0; i < width + 2; i++)
 			cout << "\xB2";
 
@@ -811,6 +831,36 @@ public:
 			Logic();
 			Sleep(speed);
 		}
+
+		fileOutput.open("Rates.txt");
+
+		int stopCou = 0;
+
+		for (int i = 0; i < Icou; i++)
+		{
+			if (topScore[i] < score1)
+			{
+				stopCou = i;
+				if (Icou < 10)
+					Icou++;
+				break;
+			}
+
+			if (topUsernames[i] == "" || topScore[i] == 0) continue;
+
+			fileOutput << topUsernames[i] << " " << topScore[i] << endl;
+		}
+
+		if(stopCou<=10) fileOutput << username << " " << score1 << endl;
+
+		for (int i = stopCou; i < Icou; i++)
+		{
+			if (topUsernames[i] == "" || topScore[i] == 0) continue;
+			fileOutput << topUsernames[i] << " " << topScore[i]<<endl;
+		}
+
+		fileOutput.close();
+
 		setCursorPosition(0, height + 1);
 	}
 };
