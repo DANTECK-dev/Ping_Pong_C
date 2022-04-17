@@ -896,6 +896,6 @@ public:
 
 int main()
 {
-	GameManager g(100, 20);
+	GameManager g(190, 40);
 	g.Run();
 }
