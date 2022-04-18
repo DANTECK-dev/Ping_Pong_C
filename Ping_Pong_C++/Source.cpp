@@ -1,14 +1,10 @@
 #pragma once
 
 #include <time.h>
-#include <random>
 #include <conio.h>
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <Windows.h>
-
-using namespace std;
 
 void cls()
 {
@@ -19,11 +15,11 @@ void cls()
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	COORD topLeft = { 0, 0 };
 
-	// std::cout uses a buffer to batch writes to the underlying console.
+	// std::std::cout uses a buffer to batch writes to the underlying console.
 	// We need to flush that to the console because we're circumventing
-	// std::cout entirely; after we clear the console, we don't want
+	// std::std::cout entirely; after we clear the console, we don't want
 	// stale buffered text to randomly be written out.
-	cout.flush();
+	std::cout.flush();
 
 	// Figure out the current width and height of the console window
 	if (!GetConsoleScreenBufferInfo(hOut, &csbi)) {
@@ -47,7 +43,7 @@ void cls()
 void setCursorPosition(int x, int y)
 {
 	static const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	cout.flush();
+	std::cout.flush();
 	COORD coord = { (SHORT)x, (SHORT)y };
 	SetConsoleCursorPosition(hOut, coord);
 }
@@ -88,13 +84,13 @@ public:
 			for (int j = -1; j <= 1; i++)
 			{
 				setCursorPosition(x + i, y + j);
-				cout << " ";
+				std::cout << " ";
 			}
 		}*/
 		if (first == true)
 		{
 			setCursorPosition(x, y);
-			cout << " ";
+			std::cout << " ";
 			x = origX;
 			y = origY;
 			oldX = origX;
@@ -103,7 +99,7 @@ public:
 		else
 		{
 			setCursorPosition(x, y);
-			cout << " ";
+			std::cout << " ";
 			//oldX = origX;
 			//oldY = origY;
 		}
@@ -112,7 +108,7 @@ public:
 	{
 		directional = d;
 	}
-	void randomDirectional(bool random)
+	void randomDirectional(bool random) // true - real random, false - ricoshet
 	{
 		if (random == false)
 		{
@@ -196,11 +192,11 @@ public:
 	inline void Reset()
 	{
 		setCursorPosition(x + 1, y + 1);
-		cout << " ";
+		std::cout << " ";
 		setCursorPosition(x + 1, y + 2);
-		cout << " ";
+		std::cout << " ";
 		setCursorPosition(x + 1, y + 3);
-		cout << " ";
+		std::cout << " ";
 
 		x = origX;
 		y = origY;
@@ -210,18 +206,18 @@ public:
 	inline void moveUP()
 	{
 		setCursorPosition(x + 1, y + 3);
-		cout << " ";
+		std::cout << " ";
 		setCursorPosition(x + 1, y + 2);
-		cout << " ";
+		std::cout << " ";
 		y--;
 		y--;
 	}
 	inline void moveDOWN()
 	{
 		setCursorPosition(x + 1, y + 1);
-		cout << " ";
+		std::cout << " ";
 		setCursorPosition(x + 1, y + 2);
-		cout << " ";
+		std::cout << " ";
 		y++;
 		y++;
 	}
@@ -249,33 +245,34 @@ public:
 class GameManager
 {
 private:
-	int width, height;
-	int score1, score2;
-	int speedAI, currentSpeedAI;
-	int PlayTime;
-	int ball2Timer;
-	char up1, up2, down1, down2;
-	char OnAI, OffAI;
-	bool quit;
-	bool boolObs;
-	bool addBall;
-	bool PaddleAI;
-	bool colize;
-	string username;
-	Ball* ball1;
-	Ball* ball2;
-	Paddle* player1;
-	Paddle* player2;
-	Obstacles* Obstacle;
+	int width, height; // размеры игрового пол€
+	int score1, score2; // счЄт игроков 
+	int speedAI, currentSpeedAI; // задерка перемещени€ правой платформы под управлением »»
+	int PlayTime; //  ол-во отрисованых кадров 
+	int ball2Timer; // ¬рем€ жизни второго м€чика
+	char up1, up2, down1, down2; // кнопки дл€ управлени€ движением платформы
+	char OnAI, OffAI; // кнопки дл€ управлени€ состо€нием »»
+	bool quit; // активность кнопки выхода
+	bool boolObs; // активность преп€тстви€
+	bool addBall; // активность второго м€чика
+	bool PaddleAI; // активность управлени€ правой платформой с помощью »»
+	bool colize; // пересекал ли первый м€чик область второго м€чика 
+	std::string username; // никнейм пользовател€
+	Ball* ball1; // первый м€чик
+	Ball* ball2; // второй м€чик
+	Paddle* player1; // перва€ платформа 
+	Paddle* player2; // втара€ платформа
+	Obstacles* Obstacle; // преп€тствие
 
-	ofstream fileOutput;
-	ifstream fileInput;
+	std::ofstream fileOutput; // 
+	std::ifstream fileInput;
 
 	int ObstacleTimer = 0;
 	int ObstacleX;
 	int ObstacleY;
 	int ObstacleLen;
 	bool ObsVertical;
+	int progressiya;
 
 public:
 	GameManager(int width, int height)
@@ -296,10 +293,11 @@ public:
 		addBall = true;
 		PaddleAI = false;
 		colize = true;
-		speedAI = 7;
+		speedAI = 9;
 		PlayTime = 0;
 		currentSpeedAI = 0;
 		ball2Timer = 150;
+		progressiya = 500;
 	}
 	~GameManager()
 	{
@@ -309,20 +307,20 @@ public:
 	{
 		setCursorPosition(0, 0);
 		for (int i = 0; i < width + 2; i++)
-			cout << "\xB2";
+			std::cout << "\xB2";
 
 		for (int i = 1; i < height; i++)
 		{
 			setCursorPosition(0, i);
-			cout << "\xB2";
+			std::cout << "\xB2";
 			setCursorPosition(width + 1, i);
-			cout << "\xB2";
+			std::cout << "\xB2";
 		}
 
-		cout << endl;
+		std::cout << std::endl;
 
 		for (int i = 0; i < width + 2; i++)
-			cout << "\xB2";
+			std::cout << "\xB2";
 	}
 	inline int GetWidth() { return width; }
 	inline int GetHeight() { return height; }
@@ -339,6 +337,9 @@ public:
 			ball2->Reset(true);
 		else
 			ball2->Reset(false);
+
+		ball1->randomDirectional(true);
+
 		//player1->Reset();
 		//player2->Reset();
 	}
@@ -354,13 +355,16 @@ public:
 		
 		int player2Y = player2->getY();
 		
-		if (PlayTime % 1500 == 0 && speedAI>2)
+		if (PlayTime % progressiya == 0 && speedAI > 1)
+		{
+			progressiya += progressiya*2;
 			speedAI--;
+		}
 
 		if (colize == false)
 		{
 			if (currentSpeedAI <= 0 && speedAI > 0) currentSpeedAI = speedAI;
-			else if (currentSpeedAI > 0)
+			else
 			{
 				currentSpeedAI--;
 				if (currentSpeedAI == 0)
@@ -373,20 +377,14 @@ public:
 						player2->moveDOWN();
 				}
 			}
-			else
-				if (ball1Y == player2Y + 1 || ball1Y == player2Y + 2 || ball1Y == player2Y + 3)
-					return;
-				else if (ball1Y < player2Y + 2)
-					player2->moveUP();
-				else if (ball1Y > player2Y + 2)
-					player2->moveDOWN();
 			return;
-		}
 
+		}
+			
 		if (ball1X > ball2X)
 		{
 			if (currentSpeedAI <= 0 && speedAI > 0) currentSpeedAI = speedAI;
-			else if (currentSpeedAI > 0)
+			else
 			{
 				currentSpeedAI--;
 				if (currentSpeedAI == 0)
@@ -399,19 +397,12 @@ public:
 						player2->moveDOWN();
 				}
 			}
-			else
-				if (ball1Y == player2Y + 1 || ball1Y == player2Y + 2 || ball1Y == player2Y + 3)
-					return;
-				else if (ball1Y < player2Y + 2)
-					player2->moveUP();
-				else if (ball1Y > player2Y + 2)
-					player2->moveDOWN();
 			return;
 		}
 		else
 		{
 			if (currentSpeedAI <= 0 && speedAI > 0) currentSpeedAI = speedAI;
-			else if (currentSpeedAI > 0)
+			else
 			{
 				currentSpeedAI--;
 				if (currentSpeedAI == 0)
@@ -424,13 +415,6 @@ public:
 						player2->moveDOWN();
 				}
 			}
-			else
-				if (ball2Y == player2Y + 1 || ball2Y == player2Y + 2 || ball2Y == player2Y + 3)
-					return;
-				else if (ball2Y < player2Y + 2)
-					player2->moveUP();
-				else if (ball2Y > player2Y + 2)
-					player2->moveDOWN();
 			return;
 		}
 	}
@@ -450,7 +434,7 @@ public:
 			int ball2X = ball2->getX();
 			int ball2Y = ball2->getY();
 			setCursorPosition(ball2X, ball2Y);
-			cout << "O";
+			std::cout << "O";
 		}
 
 		if (boolObs == true)
@@ -461,24 +445,24 @@ public:
 
 
 		setCursorPosition(ballX, ballY);
-		cout << "O";
+		std::cout << "O";
 
 		setCursorPosition(player1X + 1, player1Y + 1);
-		cout << "\xDB";
+		std::cout << "\xDB";
 		setCursorPosition(player1X + 1, player1Y + 2);
-		cout << "\xDB";
+		std::cout << "\xDB";
 		setCursorPosition(player1X + 1, player1Y + 3);
-		cout << "\xDB";
+		std::cout << "\xDB";
 
 		setCursorPosition(player2X + 1, player2Y + 1);
-		cout << "\xDB";
+		std::cout << "\xDB";
 		setCursorPosition(player2X + 1, player2Y + 2);
-		cout << "\xDB";
+		std::cout << "\xDB";
 		setCursorPosition(player2X + 1, player2Y + 3);
-		cout << "\xDB";
+		std::cout << "\xDB";
 
 		setCursorPosition(0, height + 1);
-		cout << "\nScore 1:" << score1 << "\t\t\tScore 2:" << score2
+		std::cout << "\nScore 1:" << score1 << "\t\t\tScore 2:" << score2
 			<< "\n\ncurrentSpeedAI " << currentSpeedAI << "\tspeedAI " << speedAI << "\tPlayTime " << PlayTime
 			<< "\nAddBall " << addBall << "\t\tBallColize " << colize << "\tObstacle " << boolObs
 			<< "\n\nw / s - to control the left platform"
@@ -579,7 +563,7 @@ public:
 				{
 					if (ObstacleY + i >= height - 2 || ObstacleY <= 2)break;
 					setCursorPosition(ObstacleX, ObstacleY + i);
-					cout << "\xB2";
+					std::cout << "\xB2";
 
 					if (ballX == ObstacleX)
 						if (ballY == ObstacleY + i)
@@ -599,7 +583,7 @@ public:
 					{
 						if (ObstacleY + i == height)break;
 						setCursorPosition(ObstacleX, ObstacleY + i);
-						cout << " ";
+						std::cout << " ";
 
 					}
 				}
@@ -610,7 +594,7 @@ public:
 				{
 					if (ObstacleX + i >= width - 3 || ObstacleX <= 3)break;
 					setCursorPosition(ObstacleX + i, ObstacleY);
-					cout << "\xB2";
+					std::cout << "\xB2";
 
 					if (ballX == ObstacleX + i)
 						if (ballY == ObstacleY)
@@ -630,7 +614,7 @@ public:
 					{
 						if (ObstacleX + i == width)break;
 						setCursorPosition(ObstacleX + i, ObstacleY);
-						cout << " ";
+						std::cout << " ";
 
 					}
 					boolObs = false;
@@ -640,8 +624,6 @@ public:
 		else boolObs = false;
 
 		#pragma endregion
-
-
 
 		#pragma region AddBall
 
@@ -657,19 +639,19 @@ public:
 			if (PlayTime % 20 >= 10)
 			{
 				setCursorPosition(ball2X, ball2Y);
-				cout << " ";
+				std::cout << " ";
 			}
 			else
 			{
 				setCursorPosition(ball2X, ball2Y);
-				cout << "0";
+				std::cout << "0";
 			}
 			if (ballX == ball2X - 1 || ballX == ball2X || ballX == ball2X + 1)
 			{
 				if (ballY == ball2Y - 1 || ballY == ball2Y || ballY == ball2Y + 1)
 				{
 					setCursorPosition(ball2X, ball2Y);
-					cout << " ";
+					std::cout << " ";
 					colize = true;
 				}
 			}
@@ -775,43 +757,43 @@ public:
 			int ballOld2X = ball2->getOldX();
 			int ballOld2Y = ball2->getOldY();
 			setCursorPosition(ballOld2X, ballOld2Y);
-			cout << " ";
+			std::cout << " ";
 		}
 		setCursorPosition(ballOldX, ballOldY);
-		cout << " ";
+		std::cout << " ";
 	}
 	void Run()
 	{
 		try
 		{
-			if (this->width < 12) throw exception("Error the field length is too small");
-			if (this->height < 14) throw exception("Error The field height is too small");
+			if (this->width < 12) throw std::exception("Error the field length is too small");
+			if (this->height < 14) throw std::exception("Error The field height is too small");
 
-			if (this->width > 190) throw exception("Error the field length is too big");
-			if (this->height > 40) throw exception("Error The field height is too big");
+			if (this->width > 190) throw std::exception("Error the field length is too big");
+			if (this->height > 40) throw std::exception("Error The field height is too big");
 		}
-		catch (const exception& err)
+		catch (const std::exception& err)
 		{
-			cout << "\n\t" << err.what() << "\n\t";
+			std::cout << "\n\t" << err.what() << "\n\t";
 			return;
 		}
 
-		cout << "\n\tInput username: ";
-		cin >> username;
+		std::cout << "\n\tInput username: ";
+		std::cin >> username;
 
-		system("cls");
+		std::system("cls");
 		
 		const int cou = 10;
 		int Icou = 1;
 
 		fileInput.open("Rates.txt");
-		string topUsernames[cou];
+		std::string topUsernames[cou];
 		int topScore[cou]{0};
 		
 		setCursorPosition(0, height + 11);
-		cout << "Top Usernames";
+		std::cout << "Top Usernames";
 		setCursorPosition(32, height + 11); 
-		cout << "Top Score";
+		std::cout << "Top Score";
 
 		for (int i = 0; i < cou; i++)
 			if (fileInput.eof() || fileInput.fail() || fileInput.bad()) break;
@@ -822,9 +804,9 @@ public:
 				if (topUsernames[i] != "" && topScore[i] != 0)
 				{
 					setCursorPosition(0, height + 12 + i);
-					cout << topUsernames[i];
+					std::cout << topUsernames[i];
 					setCursorPosition(32, height + 12 + i);
-					cout << topScore[i];
+					std::cout << topScore[i];
 					Icou = i + 1;
 				}
 			}
@@ -834,20 +816,20 @@ public:
 		
 		setCursorPosition(0, 0);
 		for (int i = 0; i < width + 2; i++)
-			cout << "\xB2";
+			std::cout << "\xB2";
 
 		for (int i = 1; i < height; i++)
 		{
 			setCursorPosition(0, i);
-			cout << "\xB2";
+			std::cout << "\xB2";
 			setCursorPosition(width + 1, i);
-			cout << "\xB2";
+			std::cout << "\xB2";
 		}
 
-		cout << endl;
+		std::cout << std::endl;
 
 		for (int i = 0; i < width + 2; i++)
-			cout << "\xB2";
+			std::cout << "\xB2";
 
 		while (!quit)
 		{
@@ -877,15 +859,15 @@ public:
 
 			if (topUsernames[i] == "" || topScore[i] == 0) continue;
 
-			fileOutput << topUsernames[i] << " " << topScore[i] << endl;
+			fileOutput << topUsernames[i] << " " << topScore[i] << std::endl;
 		}
 
-		if(stopCou<=10) fileOutput << username << " " << score1 << endl;
+		if(stopCou<=10) fileOutput << username << " " << score1 << std::endl;
 
 		for (int i = stopCou; i < Icou; i++)
 		{
 			if (topUsernames[i] == "" || topScore[i] == 0) continue;
-			fileOutput << topUsernames[i] << " " << topScore[i]<<endl;
+			fileOutput << topUsernames[i] << " " << topScore[i]<< std::endl;
 		}
 
 		fileOutput.close();
@@ -896,6 +878,6 @@ public:
 
 int main()
 {
-	GameManager g(190, 40);
+	GameManager g(100, 20);
 	g.Run();
 }
