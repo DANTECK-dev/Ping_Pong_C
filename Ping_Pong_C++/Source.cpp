@@ -766,8 +766,8 @@ public:
 	{
 		try
 		{
-			if (this->width < 12) throw std::exception("Error the field length is too small");
-			if (this->height < 14) throw std::exception("Error The field height is too small");
+			if (this->width < 90) throw std::exception("Error the field length is too small");
+			if (this->height < 20) throw std::exception("Error The field height is too small");
 
 			if (this->width > 190) throw std::exception("Error the field length is too big");
 			if (this->height > 40) throw std::exception("Error The field height is too big");
