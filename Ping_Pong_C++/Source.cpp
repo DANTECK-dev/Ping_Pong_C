@@ -1,5 +1,3 @@
-#pragma once
-
 #include <time.h>
 #include <conio.h>
 #include <iostream>
@@ -8,36 +6,16 @@
 
 void cls()
 {
-	// Get the Win32 handle representing standard output.
-	// This generally only has to be done once, so we make it static.
 	static const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	COORD topLeft = { 0, 0 };
-
-	// std::std::cout uses a buffer to batch writes to the underlying console.
-	// We need to flush that to the console because we're circumventing
-	// std::std::cout entirely; after we clear the console, we don't want
-	// stale buffered text to randomly be written out.
 	std::cout.flush();
-
-	// Figure out the current width and height of the console window
-	if (!GetConsoleScreenBufferInfo(hOut, &csbi)) {
-		// TODO: Handle failure!
+	if (!GetConsoleScreenBufferInfo(hOut, &csbi))
 		abort();
-	}
 	DWORD length = csbi.dwSize.X * csbi.dwSize.Y;
-
 	DWORD written;
-
-	// Flood-fill the console with spaces to clear it
 	FillConsoleOutputCharacter(hOut, TEXT(' '), length, topLeft, &written);
-
-	// Reset the attributes of every character to the default.
-	// This clears all background colour formatting, if any.
 	FillConsoleOutputAttribute(hOut, csbi.wAttributes, length, topLeft, &written);
-
-	// Move the cursor back to the top left for the next sequence of writes
 	SetConsoleCursorPosition(hOut, topLeft);
 }
 void setCursorPosition(int x, int y)
@@ -79,14 +57,6 @@ public:
 	}
 	void Reset(bool first)
 	{
-		/*for (int i = -1; i <= 1; i++)
-		{
-			for (int j = -1; j <= 1; i++)
-			{
-				setCursorPosition(x + i, y + j);
-				std::cout << " ";
-			}
-		}*/
 		if (first == true)
 		{
 			setCursorPosition(x, y);
@@ -100,8 +70,6 @@ public:
 		{
 			setCursorPosition(x, y);
 			std::cout << " ";
-			//oldX = origX;
-			//oldY = origY;
 		}
 	}
 	void changeDirectional(eDir d)
@@ -339,9 +307,6 @@ public:
 			ball2->Reset(false);
 
 		ball1->randomDirectional(true);
-
-		//player1->Reset();
-		//player2->Reset();
 	}
 	void AI()
 	{
@@ -662,10 +627,6 @@ public:
 		if (addBall == true && colize == true && PlayTime % 2 == 0)
 		{
 			ball2Timer--;
-			
-
-			//if (PlayTime % 2 == 0)
-			//ball2->Move();
 
 			//left
 			for (int i = 0; i < 4; i++)
@@ -867,7 +828,7 @@ public:
 		for (int i = stopCou; i < Icou; i++)
 		{
 			if (topUsernames[i] == "" || topScore[i] == 0) continue;
-			fileOutput << topUsernames[i] << " " << topScore[i]<< std::endl;
+			fileOutput << topUsernames[i] << " " << topScore[i] << std::endl;
 		}
 
 		fileOutput.close();
